@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 # if response.status_code != 200:
 #     raise Exception(f"Failed to load page: Status code {response.status_code}")
 titles = {}
+skipped = []
 # get all of the links
 with open('url_only_data.csv', mode='r', encoding='utf-8') as file:
     reader = csv.reader(file)
@@ -33,17 +34,24 @@ with open('url_only_data.csv', mode='r', encoding='utf-8') as file:
             titles[row[0]] = title.get_text()
             print('GOT title')
         else:
-            print('skipped!!!')
             last_6 = row[0][-6:]
             if last_6 == ".print":
                 title = soup.find("h1")
                 if (title):
                     titles[row[0]] = title.get_text()
                     print('GOT print title!', title)
+                else:
+                    print('skipped in loop!!!')
+                    skipped.append(row)
+            else:
+                print('skipped!!!')
+                skipped.append(row)
     
-df = pd.DataFrame(list(titles.items()), columns=['Link', 'Title'])
+df = pd.DataFrame(list(titles.items()), columns=['url', 'headline'])
 df.to_csv('data/news_headlines.csv', index=False)
-print(titles)
+df_skipped = pd.DataFrame(skipped, columns=['url'])
+df_skipped.to_csv('data/skipped_headlines.csv', index=False)
+#print(titles)
 
 
 # title should be the following
